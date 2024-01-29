@@ -167,6 +167,7 @@ window.HOLODEX_PLUS_INSTALLED = false;
     );
   }
 
+  // ignore: unused_element
   Future<NavigationActionPolicy> _launchSupportedUrls(
     InAppWebViewController _,
     NavigationAction navigationAction,
