@@ -322,15 +322,20 @@ class _WebViewUrlBar extends StatelessWidget {
       decoration: const InputDecoration(prefixIcon: Icon(Icons.search)),
       controller: urlController,
       keyboardType: TextInputType.url,
-      onSubmitted: (value) {
-        var url = WebUri(value);
-        if (url.scheme.isEmpty) {
-          url = WebUri('https://www.google.com/search?q=$value');
-        }
-        webViewController?.loadUrl(
-          urlRequest: URLRequest(url: url),
-        );
+      onSubmitted: loadUrl,
+      onTapOutside: (event) {
+        loadUrl(urlController.text);
       },
+    );
+  }
+
+  void loadUrl(String value) {
+    var url = WebUri(value);
+    if (url.scheme.isEmpty) {
+      url = WebUri('https://www.google.com/search?q=$value');
+    }
+    webViewController?.loadUrl(
+      urlRequest: URLRequest(url: url),
     );
   }
 }
