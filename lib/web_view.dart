@@ -64,7 +64,7 @@ class _WebViewState extends State<WebView> {
     final enableArchiveChatScript = UserScript(
       source: '''
 window.ARCHIVE_CHAT_OVERRIDE = true;
-window.HOLODEX_PLUS_INSTALLED = false;
+window.HOLODEX_PLUS_INSTALLED = true;
 ''',
       injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
     );
