@@ -56,6 +56,14 @@ class _WebViewState extends State<WebView> {
 
   @override
   Widget build(BuildContext context) {
+    final enableArchiveChatScript = UserScript(
+      source: '''
+window.ARCHIVE_CHAT_OVERRIDE = true;
+window.HOLODEX_PLUS_INSTALLED = false;
+''',
+      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
+    );
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -69,6 +77,9 @@ class _WebViewState extends State<WebView> {
                 children: [
                   InAppWebView(
                     key: webViewKey,
+                    initialUserScripts: UnmodifiableListView<UserScript>([
+                      enableArchiveChatScript,
+                    ]),
                     initialUrlRequest: URLRequest(
                       url: WebUri('https://holodex.net/'),
                       // url: WebUri('https://youtube.com/'),
