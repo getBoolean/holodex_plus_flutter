@@ -106,10 +106,10 @@ class _WebViewState extends State<WebView> {
                     // shouldInterceptFetchRequest:
                     //     (controller, fetchRequest) async => fetchRequest,
                     shouldInterceptFetchRequest: (controller, request) async =>
-                        await interceptRequest(request),
+                        await _interceptRequest(request),
                     shouldOverrideUrlLoading:
                         (controller, navigationAction) async =>
-                            await launchSupportedUrls(navigationAction),
+                            await _launchSupportedUrls(navigationAction),
                     onLoadStop: (controller, url) async {
                       await pullToRefreshController?.endRefreshing();
                       setState(() {
@@ -155,7 +155,7 @@ class _WebViewState extends State<WebView> {
     );
   }
 
-  Future<NavigationActionPolicy> launchSupportedUrls(
+  Future<NavigationActionPolicy> _launchSupportedUrls(
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
@@ -182,7 +182,7 @@ class _WebViewState extends State<WebView> {
     return NavigationActionPolicy.ALLOW;
   }
 
-  Future<FetchRequest> interceptRequest(FetchRequest request) async {
+  Future<FetchRequest> _interceptRequest(FetchRequest request) async {
     debugPrint('INTERCEPTING FETCH REQUEST');
     final uri = request.url;
     if (uri == null) return request;
