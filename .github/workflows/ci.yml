@@ -357,220 +357,224 @@ jobs:
           artifacts: build/app/outputs/bundle/release/holodex_plus_flutter-*.aab
           allowUpdates: true
 
-  # build_windows:
-  #   name: Build Flutter for Windows x64
-  #   needs: [flutter_test]
-  #   runs-on: windows-latest
-  #   steps:
-  #     # Need to enable long paths for Windows because the forked version of go_router
-  #     # causes a long path error when building for Windows in CI
-  #     - name: Enable Git Long Paths
-  #       run: git config --system core.longpaths true
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
+  build_windows:
+    name: Build Flutter for Windows x64
+    needs: [flutter_test]
+    runs-on: windows-latest
+    if: false
+    steps:
+      # Need to enable long paths for Windows because the forked version of go_router
+      # causes a long path error when building for Windows in CI
+      - name: Enable Git Long Paths
+        run: git config --system core.longpaths true
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  #     - name: Set Variables
-  #       run: |
-  #         "BRANCH_NAME=${{ env.BRANCH_NAME }}" | Out-File -Append -LiteralPath $Env:GITHUB_ENV
-  #         Write-Output "BRANCH_NAME=${{ env.BRANCH_NAME }}"
-  #       shell: pwsh
+      - name: Set Variables
+        run: |
+          "BRANCH_NAME=${{ env.BRANCH_NAME }}" | Out-File -Append -LiteralPath $Env:GITHUB_ENV
+          Write-Output "BRANCH_NAME=${{ env.BRANCH_NAME }}"
+        shell: pwsh
 
-  #     - name: Install and set Flutter version
-  #       uses: subosito/flutter-action@v2
-  #       with:
-  #         channel: ${{env.FLUTTER_CHANNEL}}
-  #         flutter-version: ${{env.FLUTTER_VERSION}}
-  #         cache: true
-  #         cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
-  #         cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
-  #         architecture: x64
+      - name: Install and set Flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{env.FLUTTER_CHANNEL}}
+          flutter-version: ${{env.FLUTTER_VERSION}}
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+          architecture: x64
 
-  #     - name: Check Flutter Version
-  #       run: flutter --version
+      - name: Check Flutter Version
+        run: flutter --version
 
-  #     # Make environment variables available to the melos generate script.
-  #     #
-  #     # The environment variables need to be defined in the repository secrets
-  #     - name: Load Environment Variables
-  #       uses: oNaiPs/secrets-to-env-action@v1
-  #       with:
-  #         secrets: ${{ toJSON(secrets) }}
+      # Make environment variables available to the melos generate script.
+      #
+      # The environment variables need to be defined in the repository secrets
+      - name: Load Environment Variables
+        uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
 
-  #     - name: Activate Melos
-  #       run: dart pub global activate melos ^3.4.0
+      - name: Activate Melos
+        run: dart pub global activate melos ^3.4.0
 
-  #     - name: Bootstrap Melos
-  #       run: melos bootstrap
+      - name: Bootstrap Melos
+        run: melos bootstrap
 
-  #     - name: Build Windows
-  #       run: flutter build windows
+      - name: Build Windows
+        run: flutter build windows
       
-  #     - name: Build MSIX
-  #       run: |
-  #         dart run msix:create --build-windows false
-  #         cd build\windows\x64\runner\Release
-  #         mv holodex_plus_flutter.msix holodex_plus_flutter-${{ env.BRANCH_NAME }}-windows.msix
-  #     - name: Upload MSIX
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-windows
-  #         path: build/windows/x64/runner/Release/*.msix
+      - name: Build MSIX
+        run: |
+          dart run msix:create --build-windows false
+          cd build\windows\x64\runner\Release
+          mv holodex_plus_flutter.msix holodex_plus_flutter-${{ env.BRANCH_NAME }}-windows.msix
+      - name: Upload MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-windows
+          path: build/windows/x64/runner/Release/*.msix
           
-  #     - name: Release MSIX
-  #       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         artifacts: build/windows/x64/runner/Release/holodex_plus_flutter-*.msix
-  #         allowUpdates: true
+      - name: Release MSIX
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: build/windows/x64/runner/Release/holodex_plus_flutter-*.msix
+          allowUpdates: true
 
-  # build_linux:
-  #   name: Build Flutter for Linux
-  #   needs: [flutter_test]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
+  build_linux:
+    name: Build Flutter for Linux
+    needs: [flutter_test]
+    runs-on: ubuntu-latest
+    if: false
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  #     - name: Set Variables
-  #       run: |
-  #         echo "Inputs: ${{ toJSON(github.event.inputs) }}"
+      - name: Set Variables
+        run: |
+          echo "Inputs: ${{ toJSON(github.event.inputs) }}"
           
-  #         echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-  #         echo "BRANCH_NAME=${{ env.BRANCH_NAME }}"
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}"
 
-  #     - name: Install and set Flutter version
-  #       uses: subosito/flutter-action@v2
-  #       with:
-  #         channel: ${{env.FLUTTER_CHANNEL}}
-  #         flutter-version: ${{env.FLUTTER_VERSION}}
-  #         cache: true
-  #         cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
-  #         cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
-  #         architecture: x64
-  #     - name: Install Dependencies
-  #       run: |
-  #         sudo apt-get update -y
-  #         sudo apt-get install webkit2gtk-4.1 clang cmake ninja-build pkg-config libgtk-3-dev mpv libmpv-dev dpkg-dev
-  #         sudo apt install -y libfuse2
+      - name: Install and set Flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{env.FLUTTER_CHANNEL}}
+          flutter-version: ${{env.FLUTTER_VERSION}}
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+          architecture: x64
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install webkit2gtk-4.1 clang cmake ninja-build pkg-config libgtk-3-dev mpv libmpv-dev dpkg-dev
+          sudo apt install -y libfuse2
 
-  #     - name: Check Flutter Version
-  #       run: flutter --version
+      - name: Check Flutter Version
+        run: flutter --version
 
-  #     # Make environment variables available to the melos generate script.
-  #     #
-  #     # The environment variables need to be defined in the repository secrets
-  #     - name: Load Environment Variables
-  #       uses: oNaiPs/secrets-to-env-action@v1
-  #       with:
-  #         secrets: ${{ toJSON(secrets) }}
+      # Make environment variables available to the melos generate script.
+      #
+      # The environment variables need to be defined in the repository secrets
+      - name: Load Environment Variables
+        uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
 
-  #     - name: Activate Melos
-  #       run: dart pub global activate melos ^3.4.0
+      - name: Activate Melos
+        run: dart pub global activate melos ^3.4.0
 
-  #     - name: Bootstrap Melos
-  #       run: melos bootstrap
+      - name: Bootstrap Melos
+        run: melos bootstrap
 
-  #     - name: Build Linux
-  #       run: flutter build linux --release
+      - name: Build Linux
+        run: flutter build linux --release
 
-  #     - name: Build AppImage
-  #       run: |
-  #         curl -JOL https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-  #         chmod a+x appimagetool-x86_64.AppImage
-  #         mv appimagetool-x86_64.AppImage appimagetool
+      - name: Build AppImage
+        run: |
+          curl -JOL https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod a+x appimagetool-x86_64.AppImage
+          mv appimagetool-x86_64.AppImage appimagetool
 
-  #         mv build/linux/x64/release/bundle/{holodex_plus_flutter,AppRun}
-  #         cp linux/appimage/* build/linux/x64/release/bundle/
-  #         ./appimagetool build/linux/x64/release/bundle/
-  #         mv *.AppImage build/holodex_plus_flutter-${{ env.BRANCH_NAME }}-linux.AppImage
+          mv build/linux/x64/release/bundle/{holodex_plus_flutter,AppRun}
+          cp linux/appimage/* build/linux/x64/release/bundle/
+          ./appimagetool build/linux/x64/release/bundle/
+          mv *.AppImage build/holodex_plus_flutter-${{ env.BRANCH_NAME }}-linux.AppImage
 
-  #     - name: Upload AppImage
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-linux-appimage
-  #         path: build/holodex_plus_flutter-*.AppImage
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-linux-appimage
+          path: build/holodex_plus_flutter-*.AppImage
           
-  #     - name: Release AppImage
-  #       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         artifacts: build/holodex_plus_flutter-*.AppImage
-  #         allowUpdates: true
+      - name: Release AppImage
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: build/holodex_plus_flutter-*.AppImage
+          allowUpdates: true
 
-  # build_macos:
-  #   name: Build Flutter for MacOS
-  #   needs: [flutter_test]
-  #   runs-on: macos-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
+  build_macos:
+    name: Build Flutter for MacOS
+    needs: [flutter_test]
+    runs-on: macos-latest
+    if: false
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  #     - name: Set Variables
-  #       run: |
-  #         echo "Inputs: ${{ toJSON(github.event.inputs) }}"
+      - name: Set Variables
+        run: |
+          echo "Inputs: ${{ toJSON(github.event.inputs) }}"
           
-  #         echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-  #         echo "BRANCH_NAME=${{ env.BRANCH_NAME }}"
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${{ env.BRANCH_NAME }}"
 
-  #     - name: Install and set Flutter version
-  #       uses: subosito/flutter-action@v2
-  #       with:
-  #         channel: ${{env.FLUTTER_CHANNEL}}
-  #         flutter-version: ${{env.FLUTTER_VERSION}}
-  #         cache: true
-  #         cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
-  #         cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
-  #         architecture: x64
+      - name: Install and set Flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{env.FLUTTER_CHANNEL}}
+          flutter-version: ${{env.FLUTTER_VERSION}}
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+          architecture: x64
 
-  #     - name: Check Flutter Version
-  #       run: flutter --version
+      - name: Check Flutter Version
+        run: flutter --version
 
-  #     # Make environment variables available to the melos generate script.
-  #     #
-  #     # The environment variables need to be defined in the repository secrets
-  #     - name: Load Environment Variables
-  #       uses: oNaiPs/secrets-to-env-action@v1
-  #       with:
-  #         secrets: ${{ toJSON(secrets) }}
+      # Make environment variables available to the melos generate script.
+      #
+      # The environment variables need to be defined in the repository secrets
+      - name: Load Environment Variables
+        uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
 
-  #     - name: Activate Melos
-  #       run: dart pub global activate melos ^3.4.0
+      - name: Activate Melos
+        run: dart pub global activate melos ^3.4.0
 
-  #     - name: Bootstrap Melos
-  #       run: melos bootstrap
+      - name: Bootstrap Melos
+        run: melos bootstrap
 
-  #     - name: Build MacOS
-  #       run: |
-  #         git config --global core.longpaths true
-  #         flutter pub get
-  #         flutter build macos --release
+      - name: Build MacOS
+        run: |
+          git config --global core.longpaths true
+          flutter pub get
+          flutter build macos --release
       
-  #     - name: Build DMG
-  #       uses: nick-fields/retry@v2
-  #       with:
-  #         timeout_minutes: 10
-  #         max_attempts: 3
-  #         retry_on: error
-  #         command: |
-  #           brew install create-dmg 
-  #           create-dmg --volname holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos.dmg build/macos/Build/Products/Release/holodex_plus_flutter.app
+      - name: Build DMG
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_on: error
+          command: |
+            brew install create-dmg 
+            create-dmg --volname holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos --window-pos 200 120 --window-size 800 450 --icon-size 100 --app-drop-link 600 185 holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos.dmg build/macos/Build/Products/Release/holodex_plus_flutter.app
       
-  #     - name: Upload DMG
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos
-  #         path: "/Users/runner/work/holodex_plus_flutter/holodex_plus_flutter/*.dmg"
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: holodex_plus_flutter-${{ env.BRANCH_NAME }}-macos
+          path: "/Users/runner/work/holodex_plus_flutter/holodex_plus_flutter/*.dmg"
           
-  #     - name: Release DMG
-  #       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         artifacts: /Users/runner/work/holodex_plus_flutter/holodex_plus_flutter/holodex_plus_flutter-*.dmg
-  #         allowUpdates: true
+      - name: Release DMG
+        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: /Users/runner/work/holodex_plus_flutter/holodex_plus_flutter/holodex_plus_flutter-*.dmg
+          allowUpdates: true
   build_web:
     name: Build Flutter for Web
     needs: [flutter_test]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -634,7 +638,7 @@ jobs:
       issues: write        # to leave a comment on the issue
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' && !startsWith(github.event.ref, 'refs/tags/v')
+    if: false && github.event_name == 'push' && !startsWith(github.event.ref, 'refs/tags/v')
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
