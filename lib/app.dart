@@ -33,7 +33,9 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isSupported ? const WebView() : const _UnsupportedWidget(),
+      home: isSupported
+          ? const SafeArea(child: WebView())
+          : const _UnsupportedWidget(),
     );
   }
 }
