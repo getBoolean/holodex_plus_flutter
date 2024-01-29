@@ -1,9 +1,10 @@
 import 'dart:collection';
-
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:holodex_plus_flutter/scripts/masterchat.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WebView extends StatefulWidget {
@@ -22,9 +23,9 @@ class _WebViewState extends State<WebView> {
     isInspectable: kDebugMode,
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
-    iframeAllow: 'camera; microphone',
     iframeAllowFullscreen: true,
     useShouldInterceptFetchRequest: true,
+    useShouldInterceptRequest: true,
     userAgent:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
   );
@@ -123,7 +124,25 @@ window.HOLODEX_PLUS_INSTALLED = false;
                     // shouldInterceptFetchRequest:
                     //     (controller, fetchRequest) async => fetchRequest,
                     shouldInterceptFetchRequest: _interceptRequest,
-                    // shouldOverrideUrlLoading: _launchSupportedUrls,
+                    shouldInterceptRequest: (controller, request) async {
+                      debugPrint(
+                        'INTERCEPTING WEB RESOURCE REQUEST: ${request.url.rawValue}',
+                      );
+
+                      if (request.url.rawValue.startsWith(
+                        'https://www.youtube.com/redirect_replay_chat?',
+                      )) {
+                        debugPrint('HANDLING REDIRECT REPLAY CHAT');
+
+                        return await _handleAndroidRedirectReplayChat(
+                          controller,
+                          request,
+                        );
+                      }
+
+                      return null;
+                    },
+                    shouldOverrideUrlLoading: _launchSupportedUrls,
                     onLoadStop: (controller, url) async {
                       await pullToRefreshController?.endRefreshing();
                       setState(() {
@@ -230,6 +249,62 @@ window.HOLODEX_PLUS_INSTALLED = false;
       ..headers?.removeWhere(
         (key, value) => key.toLowerCase() == 'x-frame-options',
       );
+  }
+
+  Future<WebResourceResponse?> _handleAndroidRedirectReplayChat(
+    InAppWebViewController controller,
+    WebResourceRequest request,
+  ) async {
+    final videoId = request.url.queryParameters['v'];
+    if (videoId == null) {
+      debugPrint('SKIPPING FETCH REQUEST');
+
+      return null;
+    }
+    final channelId = request.url.queryParameters['c'];
+    if (channelId == null) {
+      debugPrint('SKIPPING FETCH REQUEST');
+
+      return null;
+    }
+    final darkTheme = request.url.queryParameters['dark_theme'];
+    final continuation = await controller.evaluateJavascript(
+      source: '''
+$masterchat
+replayReloadContinuation({videoId: "$videoId", channelId: "$channelId" })
+''',
+    );
+    if (continuation == null || continuation is! String) {
+      return null;
+    }
+
+    final queryParameters = <String, String>{};
+    queryParameters['continuation'] = continuation;
+    if (darkTheme != null) {
+      queryParameters['dark_theme'] = darkTheme;
+    }
+    debugPrint('REDIRECTING FETCH REQUEST');
+
+    final redirect = WebUri.uri(
+      Uri.https(
+        'www.youtube.com',
+        'live_chat_replay',
+        queryParameters,
+      ),
+    );
+    final response = await http.get(
+      redirect,
+      headers: request.headers
+        ?..removeWhere(
+          (key, value) => key.toLowerCase() == 'x-frame-options',
+        ),
+    );
+
+    return WebResourceResponse(
+      headers: response.headers,
+      statusCode: response.statusCode,
+      data: response.bodyBytes,
+    );
   }
 
   FetchRequest _handleRedirectReplayChat(WebUri uri, FetchRequest request) {
