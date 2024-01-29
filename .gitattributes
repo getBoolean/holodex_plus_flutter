@@ -1,2 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+*.cpp linguist-detectable=false
+*.h linguist-detectable=false
+*.cmake linguist-detectable=true
+*.txt linguist-detectable=false
+*.html linguist-detectable=false
+*.js linguist-detectable=false
+*.css linguist-detectable=false
