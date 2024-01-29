@@ -5,9 +5,9 @@ not affiliated with Holodex or Holodex Plus.
 
 ## Status
 
-- [x] Enable Archive Chat boolean flag
+- Enabled Archive Chat boolean flag
 - iOS: Videos will not load when using `shouldInterceptFetchRequest`, see [issue](https://github.com/pichillilorenzo/flutter_inappwebview/issues/2001)
-- Android: Archive Chat frame is succesfully embedded but there are no chat messages, likely due to the
+- Android: Archive Chat frame is successfully embedded but there are no chat messages, likely due to the
   incomplete extension port I did. See below image:
 
 ![Android Screenshot](./doc/AndroidArchiveChatEmpty.png)
