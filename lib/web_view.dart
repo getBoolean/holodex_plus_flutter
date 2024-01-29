@@ -296,20 +296,29 @@ replayReloadContinuation({videoId: "$videoId", channelId: "$channelId" })
     );
     final response = await http.get(
       redirect,
-      headers: request.headers
-        ?..removeWhere(
-          (key, value) => key.toLowerCase() == 'x-frame-options',
-        ),
+      headers:
+          request.headers?.entries.fold(<String, String>{}, (map, element) {
+        if (element.key.toLowerCase() != 'x-frame-options') {
+          map?[element.key] = element.value;
+        }
+
+        return map;
+      }),
     );
     debugPrint('RESPONSE: ${response.body}');
 
     return WebResourceResponse(
-      headers: response.headers
-        ..removeWhere(
-          (key, value) => key.toLowerCase() == 'x-frame-options',
-        ),
+      headers:
+          response.headers.entries.fold(<String, String>{}, (map, element) {
+        if (element.key.toLowerCase() != 'x-frame-options') {
+          map?[element.key] = element.value;
+        }
+
+        return map;
+      }),
       statusCode: response.statusCode,
       data: response.bodyBytes,
+      contentEncoding: response.headers['content-encoding'],
     );
   }
 
