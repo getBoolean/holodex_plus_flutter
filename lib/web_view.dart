@@ -1,0 +1,314 @@
+import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class WebView extends StatefulWidget {
+  const WebView({required this.title, super.key});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<WebView> createState() => _WebViewState();
+}
+
+class _WebViewState extends State<WebView> {
+  final GlobalKey webViewKey = GlobalKey();
+
+  InAppWebViewController? webViewController;
+  InAppWebViewSettings settings = InAppWebViewSettings(
+    isInspectable: kDebugMode,
+    mediaPlaybackRequiresUserGesture: false,
+    allowsInlineMediaPlayback: true,
+    iframeAllow: 'camera; microphone',
+    iframeAllowFullscreen: true,
+    useShouldInterceptFetchRequest: false,
+    userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+  );
+
+  PullToRefreshController? pullToRefreshController;
+  String url = '';
+  double progress = 0;
+  final urlController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    pullToRefreshController = kIsWeb
+        ? null
+        : PullToRefreshController(
+            settings: PullToRefreshSettings(
+              color: Colors.blue,
+            ),
+            onRefresh: () async {
+              if (defaultTargetPlatform == TargetPlatform.android) {
+                await webViewController?.reload();
+              } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+                await webViewController?.loadUrl(
+                  urlRequest:
+                      URLRequest(url: await webViewController?.getUrl()),
+                );
+              }
+            },
+          );
+  }
+
+  @override
+  // ignore: cyclomatic_complexity
+  Widget build(BuildContext context) {
+    return Scaffold(
+      floatingActionButton:
+          (kIsWeb || io.Platform.isAndroid || io.Platform.isIOS)
+              ? null
+              : FloatingActionButton(
+                  // ignore: no_empty_block
+                  onPressed: () {},
+                  child: const Icon(Icons.add),
+                ),
+      body: !(kIsWeb || io.Platform.isAndroid || io.Platform.isIOS)
+          ? const ColoredBox(
+              color: Colors.deepPurple,
+              child: Center(
+                child: Text('Not supported on this platform.'),
+              ),
+            )
+          : SafeArea(
+              child: Column(
+                children: <Widget>[
+                  TextField(
+                    decoration:
+                        const InputDecoration(prefixIcon: Icon(Icons.search)),
+                    controller: urlController,
+                    keyboardType: TextInputType.url,
+                    onSubmitted: (value) {
+                      var url = WebUri(value);
+                      if (url.scheme.isEmpty) {
+                        url = WebUri('https://www.google.com/search?q=$value');
+                      }
+                      webViewController?.loadUrl(
+                        urlRequest: URLRequest(url: url),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        InAppWebView(
+                          key: webViewKey,
+                          initialUrlRequest: URLRequest(
+                            url: WebUri('https://holodex.net/'),
+                            // url: WebUri('https://youtube.com/'),
+                            headers: {
+                              'X-Frame-Options': 'ALLOWALL',
+                            },
+                          ),
+                          // Needed for NestedScrollView
+                          // https://github.com/pichillilorenzo/flutter_inappwebview/issues/915#issuecomment-884374662
+                          gestureRecognizers:
+                              <Factory<OneSequenceGestureRecognizer>>{}..add(
+                                  const Factory<VerticalDragGestureRecognizer>(
+                                    VerticalDragGestureRecognizer.new,
+                                  ),
+                                ),
+                          initialSettings: settings,
+                          pullToRefreshController: pullToRefreshController,
+                          onWebViewCreated: (controller) {
+                            webViewController = controller;
+                          },
+                          onLoadStart: (controller, url) {
+                            setState(() {
+                              this.url = url.toString();
+                              urlController.text = this.url;
+                            });
+                          },
+                          onPermissionRequest: (controller, request) async {
+                            return PermissionResponse(
+                              resources: request.resources,
+                              action: PermissionResponseAction.GRANT,
+                            );
+                          },
+                          // shouldInterceptAjaxRequest:
+                          //     (controller, ajaxRequest) async {
+                          //   print(ajaxRequest.url);
+                          //   return ajaxRequest;
+                          // },
+                          shouldInterceptFetchRequest:
+                              (controller, fetchRequest) async => fetchRequest,
+                          // shouldInterceptFetchRequest:
+                          //     (controller, request) async {
+                          //   return request;
+                          //   // const q = new URL(details.url);
+                          //   // const videoId = q.searchParams.get("v");
+                          //   // const channelId = q.searchParams.get("c");
+                          //   // const darkTheme = q.searchParams.get("dark_theme");
+                          //   // const continuation =
+                          //   //   videoId &&
+                          //   //   channelId &&
+                          //   //   rrc({
+                          //   //     videoId,
+                          //   //     channelId,
+                          //   //   });
+                          //   // const redirect = new URL("https://www.youtube.com/live_chat_replay");
+                          //   // if(continuation) redirect.searchParams.set("continuation", continuation);
+                          //   // if(darkTheme) redirect.searchParams.set("dark_theme", darkTheme);
+                          //   // return {
+                          //   //   redirectUrl: redirect.toString(),
+                          //   // };
+                          //   print('INTERCEPTING FETCH REQUEST');
+                          //   final uri = request.url;
+                          //   if (uri == null) return request;
+                          //   if (!uri.path.startsWith(
+                          //     'https://www.youtube.com/redirect_replay_chat?',
+                          //   )) {
+                          //     print('SKIPPING FETCH REQUEST');
+                          //     return request;
+                          //   }
+                          //   final videoId = uri.queryParameters['v'];
+                          //   if (videoId == null) {
+                          //     print('SKIPPING FETCH REQUEST');
+                          //     return request;
+                          //   }
+                          //   final channelId = uri.queryParameters['c'];
+                          //   if (channelId == null) {
+                          //     print('SKIPPING FETCH REQUEST');
+                          //     return request;
+                          //   }
+                          //   final darkTheme = uri.queryParameters['dark_theme'];
+                          //   // final continuation = videoId != null &&
+                          //   //     channelId != null &&
+                          //   //     rrc(
+                          //   //       videoId: videoId,
+                          //   //       channelId: channelId,
+                          //   //     );
+                          //   final redirect = WebUri(
+                          //     'https://www.youtube.com/live_chat_replay',
+                          //   );
+                          //   if (darkTheme != null) {
+                          //     redirect.queryParameters['dark_theme'] = darkTheme;
+                          //   }
+                          //   print('REDIRECTING FETCH REQUEST');
+                          //   return FetchRequest(
+                          //     url: redirect,
+                          //     method: request.method,
+                          //     headers: request.headers
+                          //       ?..removeWhere(
+                          //         (key, value) =>
+                          //             key.toLowerCase() == 'x-frame-options',
+                          //       ),
+                          //     body: request.body,
+                          //     mode: request.mode,
+                          //     credentials: request.credentials,
+                          //     cache: request.cache,
+                          //   );
+                          // },
+                          shouldOverrideUrlLoading:
+                              (controller, navigationAction) async {
+                            final uri = navigationAction.request.url;
+                            if (uri == null) {
+                              return NavigationActionPolicy.ALLOW;
+                            }
+
+                            if (![
+                              'http',
+                              'https',
+                              'file',
+                              'chrome',
+                              'data',
+                              'javascript',
+                              'about',
+                            ].contains(uri.scheme)) {
+                              if (await canLaunchUrl(uri)) {
+                                // Launch the App
+                                await launchUrl(
+                                  uri,
+                                );
+                                // and cancel the request
+
+                                return NavigationActionPolicy.CANCEL;
+                              }
+                            }
+
+                            return NavigationActionPolicy.ALLOW;
+                          },
+                          onLoadStop: (controller, url) async {
+                            await pullToRefreshController?.endRefreshing();
+                            setState(() {
+                              this.url = url.toString();
+                              urlController.text = this.url;
+                            });
+                          },
+                          onReceivedError: (controller, request, error) {
+                            pullToRefreshController?.endRefreshing();
+                          },
+                          onProgressChanged: (controller, progress) {
+                            if (progress == 100) {
+                              pullToRefreshController?.endRefreshing();
+                            }
+                            setState(() {
+                              this.progress = progress / 100;
+                              urlController.text = url;
+                            });
+                          },
+                          onUpdateVisitedHistory:
+                              (controller, url, androidIsReload) {
+                            setState(() {
+                              this.url = url.toString();
+                              urlController.text = this.url;
+                            });
+                          },
+                          onConsoleMessage: (controller, consoleMessage) {
+                            if (kDebugMode) {
+                              print(consoleMessage);
+                            }
+                          },
+                        ),
+                        if (progress < 1.0)
+                          LinearProgressIndicator(value: progress)
+                        else
+                          Container(),
+                      ],
+                    ),
+                  ),
+                  ButtonBar(
+                    alignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ElevatedButton(
+                        child: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          webViewController?.goBack();
+                        },
+                      ),
+                      ElevatedButton(
+                        child: const Icon(Icons.arrow_forward),
+                        onPressed: () {
+                          webViewController?.goForward();
+                        },
+                      ),
+                      ElevatedButton(
+                        child: const Icon(Icons.refresh),
+                        onPressed: () {
+                          webViewController?.reload();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
