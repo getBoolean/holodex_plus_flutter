@@ -15,6 +15,7 @@ class WebView extends StatefulWidget {
 
 class _WebViewState extends State<WebView> {
   final GlobalKey webViewKey = GlobalKey();
+  static final _keepAlive = InAppWebViewKeepAlive();
 
   InAppWebViewController? webViewController;
   InAppWebViewSettings settings = InAppWebViewSettings(
@@ -79,6 +80,7 @@ window.HOLODEX_PLUS_INSTALLED = false;
                 children: [
                   InAppWebView(
                     key: webViewKey,
+                    keepAlive: _keepAlive,
                     initialUserScripts: UnmodifiableListView<UserScript>([
                       enableArchiveChatScript,
                     ]),
