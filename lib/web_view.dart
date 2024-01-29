@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -111,16 +113,15 @@ window.HOLODEX_PLUS_INSTALLED = false;
                     },
                     // shouldInterceptAjaxRequest:
                     //     (controller, ajaxRequest) async {
-                    //   print(ajaxRequest.url);
-                    //   return ajaxRequest;
+                    //   debugPrint('INTERCEPTING AJAX REQUEST');
+                    //   debugPrint(ajaxRequest.url?.rawValue);
+
+                    //   return null;
                     // },
                     // shouldInterceptFetchRequest:
                     //     (controller, fetchRequest) async => fetchRequest,
-                    shouldInterceptFetchRequest: (controller, request) async =>
-                        await _interceptRequest(request),
-                    shouldOverrideUrlLoading:
-                        (controller, navigationAction) async =>
-                            await _launchSupportedUrls(navigationAction),
+                    shouldInterceptFetchRequest: _interceptRequest,
+                    // shouldOverrideUrlLoading: _launchSupportedUrls,
                     onLoadStop: (controller, url) async {
                       await pullToRefreshController?.endRefreshing();
                       setState(() {
@@ -167,12 +168,15 @@ window.HOLODEX_PLUS_INSTALLED = false;
   }
 
   Future<NavigationActionPolicy> _launchSupportedUrls(
+    InAppWebViewController _,
     NavigationAction navigationAction,
   ) async {
     final uri = navigationAction.request.url;
     if (uri == null) {
       return NavigationActionPolicy.ALLOW;
     }
+
+    debugPrint('LAUNCHING URL: ${uri.rawValue}');
 
     if (![
       'http',
@@ -193,15 +197,23 @@ window.HOLODEX_PLUS_INSTALLED = false;
     return NavigationActionPolicy.ALLOW;
   }
 
-  Future<FetchRequest> _interceptRequest(FetchRequest request) async {
+  Future<FetchRequest> _interceptRequest(
+    InAppWebViewController _,
+    FetchRequest request,
+  ) async {
     debugPrint('INTERCEPTING FETCH REQUEST');
     final uri = request.url;
     if (uri == null) return request;
+    debugPrint('URL: ${uri.rawValue}');
     if (uri.rawValue.startsWith(
       'https://www.youtube.com/redirect_replay_chat?',
     )) {
+      debugPrint('HANDLING REDIRECT REPLAY CHAT');
+
       return _handleRedirectReplayChat(uri, request);
     } else if (uri.rawValue.contains('youtube.com/live_chat_replay?')) {
+      debugPrint('HANDLING LIVE CHAT REPLAY');
+
       return _handleLiveChatReplay(request);
     }
 
