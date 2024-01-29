@@ -126,6 +126,7 @@ window.HOLODEX_PLUS_INSTALLED = false;
                     //     (controller, fetchRequest) async => fetchRequest,
                     shouldInterceptFetchRequest: _interceptRequest,
                     shouldInterceptRequest: (controller, request) async {
+                      // This method is android only, return null to let the request complete normally
                       debugPrint(
                         'INTERCEPTING WEB RESOURCE REQUEST: ${request.url.rawValue}',
                       );
