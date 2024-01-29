@@ -1,5 +1,10 @@
+import 'dart:io' as io;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:holodex_plus_flutter/web_view.dart';
+
+final isSupported = kIsWeb || io.Platform.isAndroid || io.Platform.isIOS;
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -28,7 +33,23 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const WebView(title: 'Flutter Demo Home Page'),
+      home: isSupported ? const WebView() : const _UnsupportedWidget(),
+    );
+  }
+}
+
+class _UnsupportedWidget extends StatelessWidget {
+  const _UnsupportedWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: ColoredBox(
+        color: Colors.deepPurple,
+        child: Center(
+          child: Text('Not supported on this platform.'),
+        ),
+      ),
     );
   }
 }
