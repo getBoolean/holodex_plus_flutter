@@ -327,6 +327,7 @@ class _WebViewUrlBar extends StatelessWidget {
       keyboardType: TextInputType.url,
       onSubmitted: loadUrl,
       onTapOutside: (event) {
+        FocusScope.of(context).unfocus();
         loadUrl(urlController.text);
       },
     );
