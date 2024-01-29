@@ -300,9 +300,13 @@ replayReloadContinuation({videoId: "$videoId", channelId: "$channelId" })
           (key, value) => key.toLowerCase() == 'x-frame-options',
         ),
     );
+    debugPrint('RESPONSE: ${response.body}');
 
     return WebResourceResponse(
-      headers: response.headers,
+      headers: response.headers
+        ..removeWhere(
+          (key, value) => key.toLowerCase() == 'x-frame-options',
+        ),
       statusCode: response.statusCode,
       data: response.bodyBytes,
     );
