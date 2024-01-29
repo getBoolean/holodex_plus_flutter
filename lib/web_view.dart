@@ -72,9 +72,6 @@ class _WebViewState extends State<WebView> {
                     initialUrlRequest: URLRequest(
                       url: WebUri('https://holodex.net/'),
                       // url: WebUri('https://youtube.com/'),
-                      headers: {
-                        'X-Frame-Options': 'ALLOWALL',
-                      },
                     ),
                     // Needed for NestedScrollView
                     // https://github.com/pichillilorenzo/flutter_inappwebview/issues/915#issuecomment-884374662
