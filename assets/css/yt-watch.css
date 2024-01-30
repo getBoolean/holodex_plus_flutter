@@ -1,0 +1,50 @@
+.yt-watch-holodex-btn {
+  vertical-align: middle;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.yt-watch-holodex-btn-light {
+  background-color: #f2f2f2 !important;
+}
+
+.yt-watch-holodex-btn-light:hover {
+  background-color: #e5e5e5 !important;
+}
+
+.yt-watch-holodex-btn-dark {
+  background-color: #272727 !important;
+}
+
+.yt-watch-holodex-btn-dark:hover {
+  background-color: #3f3f3f !important;
+}
+
+.yt-watch-holodex-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+}
+
+.yt-watch-holodex-icon path:nth-child(1) {
+  fill: var(--yt-button-icon-button-text-color, var(--yt-spec-text-secondary));
+}
+
+.yt-watch-holodex-icon path:nth-child(2) {
+  stroke: var(--yt-button-icon-button-text-color, var(--yt-spec-text-secondary));
+}
+
+.yt-watch-holodex-btn:hover .yt-watch-holodex-icon>path:nth-child(1) {
+  fill: #f06292;
+}
+
+.yt-watch-holodex-btn:hover .yt-watch-holodex-icon>path:nth-child(2) {
+  stroke: #5da2f2;
+}
+
+@media screen and (max-width: 1200px) {
+  .yt-watch-holodex-label {
+    display: none;
+  }
+}

@@ -164,6 +164,9 @@ window.HOLODEX_PLUS_INSTALLED = true;
                       await controller.injectCSSFileFromAsset(
                         assetFilePath: 'assets/css/hyperchat.css',
                       );
+                      await controller.injectCSSFileFromAsset(
+                        assetFilePath: 'assets/css/yt-watch.css',
+                      );
                     },
                     onReceivedError: (controller, request, error) {
                       pullToRefreshController?.endRefreshing();
