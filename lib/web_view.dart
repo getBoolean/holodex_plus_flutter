@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:holodex_plus_flutter/scripts/hyperchat.dart';
 import 'package:holodex_plus_flutter/scripts/masterchat.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -68,6 +69,14 @@ window.HOLODEX_PLUS_INSTALLED = true;
 ''',
       injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
     );
+    final masterchatScript = UserScript(
+      source: masterchat,
+      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
+    );
+    final hyperchatScript = UserScript(
+      source: hyperchat,
+      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -85,6 +94,8 @@ window.HOLODEX_PLUS_INSTALLED = true;
                     keepAlive: _keepAlive,
                     initialUserScripts: UnmodifiableListView<UserScript>([
                       enableArchiveChatScript,
+                      masterchatScript,
+                      hyperchatScript,
                     ]),
                     initialUrlRequest: URLRequest(
                       url: WebUri('https://holodex.net/'),
@@ -272,7 +283,6 @@ window.HOLODEX_PLUS_INSTALLED = true;
     final darkTheme = request.url.queryParameters['dark_theme'];
     final continuation = await controller.evaluateJavascript(
       source: '''
-$masterchat
 replayReloadContinuation({videoId: "$videoId", channelId: "$channelId" })
 ''',
     );
