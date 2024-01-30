@@ -158,6 +158,9 @@ window.HOLODEX_PLUS_INSTALLED = true;
                       await controller.injectJavascriptFileFromAsset(
                         assetFilePath: 'assets/scripts/yt-player-overrides.js',
                       );
+                      await controller.injectJavascriptFileFromAsset(
+                        assetFilePath: 'assets/scripts/yt-chat.js',
+                      );
                       await controller.injectCSSFileFromAsset(
                         assetFilePath: 'assets/css/hyperchat.css',
                       );
