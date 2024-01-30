@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:holodex_plus_flutter/scripts/hyperchat.dart';
-import 'package:holodex_plus_flutter/scripts/masterchat.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,7 +24,6 @@ class _WebViewState extends State<WebView> {
     mediaPlaybackRequiresUserGesture: false,
     allowsInlineMediaPlayback: true,
     iframeAllowFullscreen: true,
-    useShouldInterceptFetchRequest: true,
     useShouldInterceptRequest: true,
     userAgent:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
@@ -69,14 +66,6 @@ window.HOLODEX_PLUS_INSTALLED = true;
 ''',
       injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
     );
-    final masterchatScript = UserScript(
-      source: masterchat,
-      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
-    );
-    final hyperchatScript = UserScript(
-      source: hyperchat,
-      injectionTime: UserScriptInjectionTime.AT_DOCUMENT_END,
-    );
 
     return Scaffold(
       body: SafeArea(
@@ -94,8 +83,6 @@ window.HOLODEX_PLUS_INSTALLED = true;
                     keepAlive: _keepAlive,
                     initialUserScripts: UnmodifiableListView<UserScript>([
                       enableArchiveChatScript,
-                      masterchatScript,
-                      hyperchatScript,
                     ]),
                     initialUrlRequest: URLRequest(
                       url: WebUri('https://holodex.net/'),
@@ -133,9 +120,6 @@ window.HOLODEX_PLUS_INSTALLED = true;
 
                     //   return null;
                     // },
-                    // shouldInterceptFetchRequest:
-                    //     (controller, fetchRequest) async => fetchRequest,
-                    shouldInterceptFetchRequest: _interceptRequest,
                     shouldInterceptRequest: (controller, request) async {
                       // This method is android only, return null to let the request complete normally
                       debugPrint(
@@ -162,6 +146,21 @@ window.HOLODEX_PLUS_INSTALLED = true;
                         this.url = url.toString();
                         urlController.text = this.url;
                       });
+                      await controller.injectJavascriptFileFromAsset(
+                        assetFilePath: 'assets/scripts/hyperchat.js',
+                      );
+                      await controller.injectJavascriptFileFromAsset(
+                        assetFilePath: 'assets/scripts/masterchat.js',
+                      );
+                      await controller.injectJavascriptFileFromAsset(
+                        assetFilePath: 'assets/scripts/yt-chat-overrides.js',
+                      );
+                      await controller.injectJavascriptFileFromAsset(
+                        assetFilePath: 'assets/scripts/yt-player-overrides.js',
+                      );
+                      await controller.injectCSSFileFromAsset(
+                        assetFilePath: 'assets/css/hyperchat.css',
+                      );
                     },
                     onReceivedError: (controller, request, error) {
                       pullToRefreshController?.endRefreshing();
@@ -232,38 +231,6 @@ window.HOLODEX_PLUS_INSTALLED = true;
     return NavigationActionPolicy.ALLOW;
   }
 
-  Future<FetchRequest> _interceptRequest(
-    InAppWebViewController _,
-    FetchRequest request,
-  ) async {
-    debugPrint('INTERCEPTING FETCH REQUEST');
-    final uri = request.url;
-    if (uri == null) return request;
-    debugPrint('URL: ${uri.rawValue}');
-    if (uri.rawValue.startsWith(
-      'https://www.youtube.com/redirect_replay_chat?',
-    )) {
-      debugPrint('HANDLING REDIRECT REPLAY CHAT');
-
-      return _handleRedirectReplayChat(uri, request);
-    } else if (uri.rawValue.contains('youtube.com/live_chat_replay?')) {
-      debugPrint('HANDLING LIVE CHAT REPLAY');
-
-      return _handleLiveChatReplay(request);
-    }
-
-    debugPrint('SKIPPING FETCH REQUEST');
-
-    return request;
-  }
-
-  FetchRequest _handleLiveChatReplay(FetchRequest request) {
-    return request
-      ..headers?.removeWhere(
-        (key, value) => key.toLowerCase() == 'x-frame-options',
-      );
-  }
-
   Future<WebResourceResponse?> _handleAndroidRedirectReplayChat(
     InAppWebViewController controller,
     WebResourceRequest request,
@@ -329,48 +296,6 @@ replayReloadContinuation({videoId: "$videoId", channelId: "$channelId" })
       statusCode: response.statusCode,
       data: response.bodyBytes,
       contentEncoding: response.headers['content-encoding'],
-    );
-  }
-
-  FetchRequest _handleRedirectReplayChat(WebUri uri, FetchRequest request) {
-    final videoId = uri.queryParameters['v'];
-    if (videoId == null) {
-      debugPrint('SKIPPING FETCH REQUEST');
-
-      return request;
-    }
-    final channelId = uri.queryParameters['c'];
-    if (channelId == null) {
-      debugPrint('SKIPPING FETCH REQUEST');
-
-      return request;
-    }
-    final darkTheme = uri.queryParameters['dark_theme'];
-    // final continuation = videoId != null &&
-    //     channelId != null &&
-    //     rrc(
-    //       videoId: videoId,
-    //       channelId: channelId,
-    //     );
-    final redirect = WebUri(
-      'https://www.youtube.com/live_chat_replay',
-    );
-    if (darkTheme != null) {
-      redirect.queryParameters['dark_theme'] = darkTheme;
-    }
-    debugPrint('REDIRECTING FETCH REQUEST');
-
-    return FetchRequest(
-      url: redirect,
-      method: request.method,
-      headers: request.headers
-        ?..removeWhere(
-          (key, value) => key.toLowerCase() == 'x-frame-options',
-        ),
-      body: request.body,
-      mode: request.mode,
-      credentials: request.credentials,
-      cache: request.cache,
     );
   }
 }
